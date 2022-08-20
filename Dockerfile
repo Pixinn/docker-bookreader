@@ -12,17 +12,16 @@ RUN ["/bin/bash", "-c", "cd /bookreader && npm install"]
 RUN ["/bin/bash", "-c", "cd /bookreader && npm run build --verbose"]
 
 # Copy files to be served
-RUN cp -r BookReader ../data/
-RUN cp -r BookReaderDemo/assets ../data/
-RUN cp BookReaderDemo/demo-vendor-fullscreen.html ../data/index.html
-RUN cp BookReaderDemo/BookReaderJSSimple.js ../data
+#RUN cp -r BookReader ../data/
+#RUN cp -r BookReaderDemo/assets ../data/
+#RUN cp BookReaderDemo/demo-vendor-fullscreen.html ../data/index.html
+#RUN cp BookReaderDemo/BookReaderJSSimple.js ../data
 
 # Tune script to serve from /data
 RUN sed -i "s|npx http-server . --port 8000|npx http-server ../data --port 8000|g" package.json
 
 # Install the Python script to build the book
-ADD assets/build.py /build.py
 RUN apt update
 RUN apt install -y python3-pip
 RUN pip3 install pillow
-
+ADD assets/build.py /build.py

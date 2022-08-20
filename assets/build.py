@@ -3,35 +3,40 @@
 import argparse
 import sys
 import os
+import shutil
 import json
 from PIL import Image
+from PIL import UnidentifiedImageError
 
 if __name__ == '__main__':
 
-    # Rename the "page" files
-    # SRC = "/data/pages/"
+    # Copy the "page" files
     SRC = "/book"
     DST = "/data"
     images = os.listdir(SRC)
     if len(images) != 0:
+        os.makedirs(os.path.join(DST, "pages"), exist_ok = True)
         for i in range(len(images)):        
-            oldName = os.path.join(SRC, images[i])
-            newName = os.path.join(SRC, images[i].replace(' ', '_'))
-            os.rename(oldName, newName)
-            images[i] = newName
+            srcImage = os.path.join(SRC, images[i])
+            dstImage = os.path.join(DST, "pages", images[i].replace(' ', '_'))
+            shutil.copyfile(srcImage, dstImage)
+            images[i] = dstImage
 
         # Build the page list in JSON ("data" field)
         options = dict();
         data = []
         for image in images:
             # Get image size
-            img = Image.open(image)
-            # Build page description
-            page = dict()
-            page["width"] = int(img.width)
-            page["height"] = int(img.height)
-            page["uri"] = "pages/" + os.path.basename(image)
-            data.append([page])
+            try:
+                img = Image.open(image)
+                # Build page description
+                page = dict()
+                page["width"] = int(img.width)
+                page["height"] = int(img.height)
+                page["uri"] = "pages/" + os.path.basename(image)
+                data.append([page])
+            except UnidentifiedImageError as e:
+                print("Warning: {}".format(e))
         options["data"] = data
         
         # Other fields
@@ -59,7 +64,12 @@ if __name__ == '__main__':
         # Write js to file
         with open(os.path.join(DST, "BookReaderJSSimple.js"), 'w') as file:
             file.write(javascript)
-    
+
+        # copy bookreader files
+        shutil.copytree("/bookreader/BookReader", os.path.join(DST, "BookReader"), dirs_exist_ok=True)
+        shutil.copytree("/bookreader/BookReaderDemo/assets", os.path.join(DST, "assets"), dirs_exist_ok=True)
+        shutil.copyfile("BookReaderDemo/demo-vendor-fullscreen.html", os.path.join(DST, "index.html"))
+
     else:
         print("No image in directory {}".format(SRC))
 
