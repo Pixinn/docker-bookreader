@@ -13,10 +13,14 @@ if __name__ == '__main__':
     # Copy the "page" files
     SRC = "/book"
     DST = "/data"
-    images = os.listdir(SRC)
+    files = os.listdir(SRC)
+    images = []
+    for file in files:
+        if file.lower().endswith(('.png', '.jpg', '.jpeg')): # todo better filtering
+            images.append(file)
     if len(images) != 0:
         os.makedirs(os.path.join(DST, "pages"), exist_ok = True)
-        for i in range(len(images)):        
+        for i in range(len(images)):  
             srcImage = os.path.join(SRC, images[i])
             dstImage = os.path.join(DST, "pages", images[i].replace(' ', '_'))
             shutil.copyfile(srcImage, dstImage)
