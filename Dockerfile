@@ -19,6 +19,8 @@ RUN ["/bin/bash", "-c", "cd /bookreader && npm run build --verbose"]
 
 # Tune script to serve from /data
 RUN sed -i "s|npx http-server . --port 8000|npx http-server ../data --port 8000|g" package.json
+RUN sed -i "s|../BookReader/|BookReader/|g" BookReaderDemo/demo-vendor-fullscreen.html
+
 
 # Install the Python script to build the book
 RUN apt update
