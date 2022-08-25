@@ -19,28 +19,32 @@ if __name__ == '__main__':
         if file.lower().endswith(('.png', '.jpg', '.jpeg')): # todo better filtering
             images.append(file)
     if len(images) != 0:
+
+        options = dict();
+        data = []
+
         os.makedirs(os.path.join(DST, "pages"), exist_ok = True)
         for i in range(len(images)):  
             srcImage = os.path.join(SRC, images[i])
             dstImage = os.path.join(DST, "pages", images[i].replace(' ', '_'))
-            shutil.copyfile(srcImage, dstImage)
-            images[i] = dstImage
+            dstImage = os.path.splitext(dstImage)[0] + ".webp"
 
-        # Build the page list in JSON ("data" field)
-        options = dict();
-        data = []
-        for image in images:
-            # Get image size
             try:
-                img = Image.open(image)
+                print("Processing {}".format(images[i]), flush=True)
+                # Save the images
+                img = Image.open(srcImage).convert("RGB")
+                img.save(dstImage, format="WEBP", quality=50)
+                images[i] = dstImage
                 # Build page description
                 page = dict()
                 page["width"] = int(img.width)
                 page["height"] = int(img.height)
-                page["uri"] = "pages/" + os.path.basename(image)
+                page["uri"] = "pages/" + os.path.basename(dstImage)
                 data.append([page])
-            except UnidentifiedImageError as e:
+
+            except Exception as e:
                 print("Warning: {}".format(e))
+            
         options["data"] = data
         
         # Other fields

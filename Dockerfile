@@ -1,4 +1,4 @@
-FROM node:latest AS bookreader
+FROM node:18.8 AS bookreader
 
 # Prepare repository
 RUN git clone https://github.com/internetarchive/bookreader.git /bookreader
@@ -11,19 +11,15 @@ ENV NODE_OPTIONS="--openssl-legacy-provider"
 RUN ["/bin/bash", "-c", "cd /bookreader && npm install"]
 RUN ["/bin/bash", "-c", "cd /bookreader && npm run build --verbose"]
 
-# Copy files to be served
-#RUN cp -r BookReader ../data/
-#RUN cp -r BookReaderDemo/assets ../data/
-#RUN cp BookReaderDemo/demo-vendor-fullscreen.html ../data/index.html
-#RUN cp BookReaderDemo/BookReaderJSSimple.js ../data
-
 # Tune script to serve from /data
 RUN sed -i "s|npx http-server . --port 8000|npx http-server ../data --port 8000|g" package.json
 RUN sed -i "s|../BookReader/|BookReader/|g" BookReaderDemo/demo-vendor-fullscreen.html
 
+# Add support to WebP
+RUN apt update -y
+RUN apt install -y libwebp-dev
 
 # Install the Python script to build the book
-RUN apt update
 RUN apt install -y python3-pip
 RUN pip3 install pillow
 ADD assets/build.py /build.py
