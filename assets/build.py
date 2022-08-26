@@ -4,15 +4,21 @@ import argparse
 import sys
 import os
 import shutil
+import base64
 import json
 from PIL import Image
 from PIL import UnidentifiedImageError
 
+
+
+SRC = "/book"
+DST = "/data"
+
+
+
 if __name__ == '__main__':
 
     # Copy the "page" files
-    SRC = "/book"
-    DST = "/data"
     files = os.listdir(SRC)
     images = []
     for file in files:
@@ -26,11 +32,13 @@ if __name__ == '__main__':
         os.makedirs(os.path.join(DST, "pages"), exist_ok = True)
         for i in range(len(images)):  
             srcImage = os.path.join(SRC, images[i])
-            dstImage = os.path.join(DST, "pages", images[i].replace(' ', '_'))
+            urlSafeEncodedBytes = base64.urlsafe_b64encode(images[i].encode("utf-8"))
+            urlSafeEncodedStr = str(urlSafeEncodedBytes, "utf-8")
+            dstImage = os.path.join(DST, "pages", urlSafeEncodedStr)
             dstImage = os.path.splitext(dstImage)[0] + ".webp"
 
             try:
-                print("Processing {}".format(images[i]), flush=True)
+                print("Processing {} => {}".format(images[i], dstImage), flush=True)
                 # Save the images
                 img = Image.open(srcImage).convert("RGB")
                 img.save(dstImage, format="WEBP", quality=50)
