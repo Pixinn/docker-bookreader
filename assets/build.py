@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+from ast import arg
 from genericpath import isdir, isfile
 import sys
 import os
@@ -15,9 +16,8 @@ import fitz
 SRC = "/book"
 DST = "/data"
 
-#SRC = "C:\\Users\\chris\\Temp\\bookreader\\in\\Byte.pdf"
+#SRC = "C:\\Users\\chris\\Temp\\bookreader\\in"
 #DST = "C:\\Users\\chris\\Temp\\bookreader\\out"
-
 
 def GenerateJavascript(options: dict):
 
@@ -62,8 +62,20 @@ def JsonProperties(width, height, filepath):
 
     return page
 
+def GetStartStop(start: int, stop: int, page_count: int):
 
-def GenerateFromPdf(input_file: str):
+    if(start > page_count):
+        print("Start page after the end of the document")
+        sys.exit(-1)
+    if(start > stop):
+        print("Stop page must be >= Start page ")
+        sys.exit(-1)
+
+    return max(0, start), min(page_count, stop)
+
+
+
+def GenerateFromPdf(input_file: str, start_page: int, stop_page: int):
     # Code from https://www.thepythoncode.com/article/convert-pdf-files-to-images-in-python
     """Converts pdf to image and generates a file by page"""
  
@@ -74,8 +86,9 @@ def GenerateFromPdf(input_file: str):
         os.makedirs(os.path.join(DST, "pages"), exist_ok = True)
         # Open the document
         doc = fitz.open(input_file)
+        start, stop = GetStartStop(start_page, stop_page, doc.page_count)
         # Iterate throughout the pages
-        for pgNr in range(doc.page_count):
+        for pgNr in range(start, stop + 1):
 
             print("Processing page {}".format(pgNr), flush=True)
 
@@ -106,7 +119,7 @@ def GenerateFromPdf(input_file: str):
     return options
 
 
-def GenerateFromImages(folder: str):
+def GenerateFromImages(folder: str, start_page: int, stop_page: int):
 
     options = dict()
     data = []
@@ -120,8 +133,9 @@ def GenerateFromImages(folder: str):
             images.append(file)
     if len(images) != 0:
 
+        start, stop = GetStartStop(start_page, stop_page, len(images))
         os.makedirs(os.path.join(DST, "pages"), exist_ok = True)
-        for i in range(len(images)):  
+        for i in range(start, stop + 1):  
             srcImage = os.path.join(folder, images[i])
             urlSafeEncodedBytes = base64.urlsafe_b64encode(images[i].encode("utf-8"))
             urlSafeEncodedStr = str(urlSafeEncodedBytes, "utf-8")
@@ -146,36 +160,50 @@ def GenerateFromImages(folder: str):
 
 if __name__ == '__main__':
 
-    # pdf or epub?
-    if len(sys.argv) > 1: 
-        ## Arguments
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--pdf', help='pdf file')
-        parser.add_argument('--epub', help='epub file')
-        args = parser.parse_args()
+
+
+    ## Arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--pdf', help='pdf file')
+    parser.add_argument('--epub', help='epub file')
+    parser.add_argument('--start', type=int, help='First page (counting from 0)')
+    parser.add_argument('--stop', type=int, help='Last page (counting from 0)')
+    args = parser.parse_args()
+    ## Sanity
+    if (not args.pdf is None) and  (not args.epub is None):
+        print("You have to provide a pdf OR an epub")
+        sys.exit(1)
+
+    start = 0
+    stop  = sys.maxsize
+    if(not args.start is None):
+        start = args.start 
+        if(start < 0):
+            print("Start page must be >= 0")
+    if(not args.stop is None):
+        stop = args.stop 
+        if(stop < 0):
+            print("Stop page must be >= 0")
+
+    # PDF
+    if (not args.pdf is None):
+
+        filepath = os.path.join(SRC, args.pdf)
+
         ## Sanity
-        if (not args.pdf is None) and  (not args.epub is None):
-            print("You have to provide a pdf OR an epub")
-            sys.exit(1)
-
-        if (not args.pdf is None):
-            filepath = os.path.join(SRC, args.pdf)
-        if (not args.epub is None):
-            filepath = os.path.join(SRC, args.epub)
-
-        if not os.path.isfile(filepath) or not filepath.lower().endswith(('.pdf', '.epub')):
+        if not os.path.isfile(filepath) or not filepath.lower().endswith(('.pdf')):
             print("Cannot process {}: unsupported format.".format(filepath))
             sys.exit(-1)
-        
+    
         ## Convert PDF and generate pages
-        options = GenerateFromPdf(filepath)
+        options = GenerateFromPdf(filepath, start, stop)
         
         ## Generate the javascript
         GenerateJavascript(options)
 
 
-    # folder of images?
-    else:
+    # Folder of images
+    if (args.pdf is None) and (args.epub is None):
         if not os.path.isdir(SRC):
             print("No image in directory {}".format(SRC))
             print("You have to provide an image directory or a pdf/epub file")
@@ -183,7 +211,7 @@ if __name__ == '__main__':
         else:
             
             ## Generate the pages
-            options = GenerateFromImages(SRC)
+            options = GenerateFromImages(SRC, start, stop)
             
             ## Generate the javascript
             GenerateJavascript(options)
