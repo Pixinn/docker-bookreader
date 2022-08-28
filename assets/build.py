@@ -164,16 +164,11 @@ if __name__ == '__main__':
 
     ## Arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--pdf', help='pdf file')
-    parser.add_argument('--epub', help='epub file')
+    parser.add_argument('--ebook', help='ebook file')
     parser.add_argument('--start', type=int, help='First page (counting from 0)')
     parser.add_argument('--stop', type=int, help='Last page (counting from 0)')
     args = parser.parse_args()
     ## Sanity
-    if (not args.pdf is None) and  (not args.epub is None):
-        print("You have to provide a pdf OR an epub")
-        sys.exit(1)
-
     start = 0
     stop  = sys.maxsize
     if(not args.start is None):
@@ -186,12 +181,12 @@ if __name__ == '__main__':
             print("Stop page must be >= 0")
 
     # PDF
-    if (not args.pdf is None):
+    if (not args.ebook is None):
 
-        filepath = os.path.join(SRC, args.pdf)
+        filepath = os.path.join(SRC, args.ebook)
 
         ## Sanity
-        if not os.path.isfile(filepath) or not filepath.lower().endswith(('.pdf')):
+        if not os.path.isfile(filepath) or not filepath.lower().endswith(('.pdf', '.xps', '.epub', '.cbz', '.fb2')):
             print("Cannot process {}: unsupported format.".format(filepath))
             sys.exit(-1)
     
@@ -203,10 +198,10 @@ if __name__ == '__main__':
 
 
     # Folder of images
-    if (args.pdf is None) and (args.epub is None):
+    if (args.ebook is None):
         if not os.path.isdir(SRC):
             print("No image in directory {}".format(SRC))
-            print("You have to provide an image directory or a pdf/epub file")
+            print("You have to provide an image directory or an ebook file")
             sys.exit(-1)
         else:
             
