@@ -21,5 +21,6 @@ RUN apt install -y libwebp-dev
 
 # Install the Python script to build the book
 RUN apt install -y python3-pip
+RUN pip3 install PyMuPDF
 RUN pip3 install pillow
 ADD assets/build.py /build.py
