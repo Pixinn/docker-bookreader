@@ -50,7 +50,7 @@ function instantiateBookReader(selector, extraOptions) {
     ## copy bookreader files
     shutil.copytree("/bookreader/BookReader", os.path.join(DST, "BookReader"), dirs_exist_ok=True)
     shutil.copytree("/bookreader/BookReaderDemo/assets", os.path.join(DST, "assets"), dirs_exist_ok=True)
-    shutil.copyfile("BookReaderDemo/demo-vendor-fullscreen.html", os.path.join(DST, "index.html"))
+    shutil.copyfile("/bookreader/BookReaderDemo/demo-vendor-fullscreen.html", os.path.join(DST, "index.html"))
 
 
 def JsonProperties(width, height, filepath):
@@ -75,7 +75,7 @@ def GetStartStop(start: int, stop: int, page_count: int):
 
 
 
-def GenerateFromPdf(input_file: str, start_page: int, stop_page: int):
+def GenerateFromEbbok(input_file: str, start_page: int, stop_page: int):
     # Code from https://www.thepythoncode.com/article/convert-pdf-files-to-images-in-python
     """Converts pdf to image and generates a file by page"""
  
@@ -86,7 +86,7 @@ def GenerateFromPdf(input_file: str, start_page: int, stop_page: int):
         os.makedirs(os.path.join(DST, "pages"), exist_ok = True)
         # Open the document
         doc = fitz.open(input_file)
-        start, stop = GetStartStop(start_page, stop_page, doc.page_count)
+        start, stop = GetStartStop(start_page, stop_page, doc.page_count - 1)
         # Iterate throughout the pages
         for pgNr in range(start, stop + 1):
 
@@ -133,7 +133,7 @@ def GenerateFromImages(folder: str, start_page: int, stop_page: int):
             images.append(file)
     if len(images) != 0:
 
-        start, stop = GetStartStop(start_page, stop_page, len(images))
+        start, stop = GetStartStop(start_page, stop_page, len(images)-1)
         os.makedirs(os.path.join(DST, "pages"), exist_ok = True)
         for i in range(start, stop + 1):  
             srcImage = os.path.join(folder, images[i])
@@ -191,7 +191,7 @@ if __name__ == '__main__':
             sys.exit(-1)
     
         ## Convert PDF and generate pages
-        options = GenerateFromPdf(filepath, start, stop)
+        options = GenerateFromEbbok(filepath, start, stop)
         
         ## Generate the javascript
         GenerateJavascript(options)

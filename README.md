@@ -26,7 +26,7 @@ docker build . -t <IMAGE_NAME>
 ## Generate the bookreader
 
 ```bash
-docker run --rm -v <OUTPUT_DIR>:/data <BOOK_DIR>:/book <IMAGE_NAME> python3 /build.py <OPTIONS>
+docker run --rm -v <OUTPUT_DIR>:/data -v <BOOK_DIR>:/book <IMAGE_NAME> python3 /build.py <OPTIONS>
 ```
 
 * **BOOK_DIR** : Directory containing images of the pages of the book or an ebook file. The path must be absolute  
@@ -39,7 +39,7 @@ usage: build.py [-h] [--ebook EBOOK] [--start START] [--stop STOP]
 
 optional arguments:
   -h, --help     show this help message and exit
-  --ebook EBOOK  ebook file
+  --ebook EBOOK  ebook file in the **BOOK_DIR** directory
   --start START  First page (counting from 0)
   --stop STOP    Last page (counting from 0)
 ```
